@@ -6,7 +6,7 @@ Please refer to http://www.termsys.demon.co.uk/vtansi.htm
 ### Install
 
 ```
-go get github.com/lumanetworks/ansi
+go get github.com/jpillora/ansi
 ```
 
 ### Usage
@@ -39,11 +39,11 @@ report.Pos.Col
 
 ### API
 
-http://godoc.org/github.com/lumanetworks/ansi
+http://godoc.org/github.com/jpillora/ansi
 
 #### MIT License
 
-Copyright © 2014 Luma Networks <contact@lumanetworks.com>
+Copyright © 2014 Luma Networks <dev@jpillora.com>
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
