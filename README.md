@@ -23,13 +23,19 @@ Wrap an `io.ReadWriteCloser`:
 ``` go
 
 a := ansi.Wrap(tcpConn)
-//Shorthand for tcpConn.Write(ansi.Set(..))
-conn.Set(ansi.Green, ansi.BlueBG)
+
+//Read, Write, Close as normal
+a.Read()
+a.Write()
+a.Close()
+
+//Shorthand for a.Write(ansi.Set(..))
+a.Set(ansi.Green, ansi.BlueBG)
 
 //Send query
-conn.QueryCursorPosition()
+a.QueryCursorPosition()
 //Await report
-report := <- conn.Reports
+report := <- a.Reports
 report.Type//=> ansi.Position
 report.Pos.Row
 report.Pos.Col
@@ -43,7 +49,7 @@ http://godoc.org/github.com/jpillora/ansi
 
 #### MIT License
 
-Copyright © 2014 Luma Networks <dev@jpillora.com>
+Copyright © 2014 &gt;dev@jpillora.com&lt;
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the
