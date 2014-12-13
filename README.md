@@ -49,7 +49,7 @@ http://godoc.org/github.com/jpillora/ansi
 
 #### MIT License
 
-Copyright © 2014 &gt;dev@jpillora.com&lt;
+Copyright © 2014 &lt;dev@jpillora.com&gt;
 
 Permission is hereby granted, free of charge, to any person obtaining
 a copy of this software and associated documentation files (the

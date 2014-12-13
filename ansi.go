@@ -3,27 +3,28 @@
 package ansi
 
 import (
+	"errors"
 	"io"
 	"regexp"
 	"strconv"
 	"strings"
 )
 
-//Ansi represents a wrapped io.ReadWriteCloser.
+//Ansi represents a wrapped io.ReadWriter.
 //It will read the stream, parse and remove ANSI report codes
 //and place them on the Reports queue.
 type Ansi struct {
-	rwc     io.ReadWriteCloser
+	rw      io.ReadWriter
 	rerr    error
 	rbuff   chan []byte
 	Reports chan *Report
 }
 
-//Wrap an io.ReadWriteCloser (like a net.Conn) to
+//Wrap an io.ReadWriter (like a net.Conn) to
 //easily read and write control codes
-func Wrap(rwc io.ReadWriteCloser) *Ansi {
+func Wrap(rw io.ReadWriter) *Ansi {
 	a := &Ansi{}
-	a.rwc = rwc
+	a.rw = rw
 	a.rbuff = make(chan []byte)
 	a.Reports = make(chan *Report)
 	go a.read()
@@ -32,13 +33,13 @@ func Wrap(rwc io.ReadWriteCloser) *Ansi {
 
 var reportCode = regexp.MustCompile(`\[([^a-zA-Z]*)(0c|0n|3n|R)`)
 
-//reads the underlying ReadWriteCloser for real,
+//reads the underlying ReadWriter for real,
 //extracts the ansi codes, places the rest
 //in the read buffer
 func (a *Ansi) read() {
 	buff := make([]byte, 0xffff)
 	for {
-		n, err := a.rwc.Read(buff)
+		n, err := a.rw.Read(buff)
 		if err != nil {
 			a.rerr = err
 			close(a.rbuff)
@@ -97,9 +98,9 @@ func (a *Ansi) parse(body, char string) {
 	a.Reports <- r
 }
 
-//Reads the underlying ReadWriteCloser
+//Reads the underlying ReadWriter
 func (a *Ansi) Read(dest []byte) (n int, err error) {
-	//It doesn't really read the underlying ReadWriteCloser :)
+	//It doesn't really read the underlying ReadWriter :)
 	if a.rerr != nil {
 		return 0, a.rerr
 	}
@@ -110,14 +111,18 @@ func (a *Ansi) Read(dest []byte) (n int, err error) {
 	return copy(dest, src), nil
 }
 
-//Writes the underlying ReadWriteCloser
+//Writes the underlying ReadWriter
 func (a *Ansi) Write(p []byte) (n int, err error) {
-	return a.rwc.Write(p)
+	return a.rw.Write(p)
 }
 
-//Closes the underlying ReadWriteCloser
+//Closes the underlying ReadWriter
 func (a *Ansi) Close() error {
-	return a.rwc.Close()
+	c, ok := a.rw.(io.Closer)
+	if !ok {
+		return errors.New("Provided ReadWriter is not a Closer")
+	}
+	return c.Close()
 }
 
 //==============================
