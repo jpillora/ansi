@@ -4,6 +4,7 @@ package ansi
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"regexp"
 	"strconv"
@@ -149,17 +150,14 @@ type Report struct {
 const Esc = byte(27)
 
 var QueryCode = []byte{Esc, '[', 'c'}
-
-// Query Device Status	<ESC>[5n
-// Query Cursor Position	<ESC>[6n
-
+var QueryDeviceStatus = []byte{Esc, '[', '5', 'n'}
 var QueryCursorPosition = []byte{Esc, '[', '6', 'n'}
 
 func (a *Ansi) QueryCursorPosition() {
 	a.Write(QueryCursorPosition)
 }
 
-// Reset Device		<ESC>c
+var ResetDevice = []byte{Esc, 'c'}
 
 var EnableLineWrap = []byte{Esc, '[', '7', 'h'}
 
@@ -173,8 +171,8 @@ func (a *Ansi) DisableLineWrap() {
 	a.Write(DisableLineWrap)
 }
 
-// Font Set G0		<ESC>(
-// Font Set G1		<ESC>)
+var FontSetG0 = []byte{Esc, '('}
+var FontSetG1 = []byte{Esc, ')'}
 
 // Cursor Home 		<ESC>[{ROW};{COLUMN}H
 // Cursor Up		<ESC>[{COUNT}A
@@ -196,15 +194,10 @@ func (a *Ansi) Goto(r, c uint16) {
 	a.Write(Goto(r, c))
 }
 
-// Save Cursor		<ESC>[s
-// Unsave Cursor		<ESC>[u
-// Save Cursor & Attrs	<ESC>7
-// Restore Cursor & Attrs	<ESC>8
-// Scroll Screen		<ESC>[r
-// Scroll Screen		<ESC>[{start};{end}r
-// Scroll Down		<ESC>D
-// Scroll Up		<ESC>M
-
+var SaveCursor = []byte{Esc, '[', 's'}
+var UnsaveCursor = []byte{Esc, '[', 'u'}
+var SaveAttrCursor = []byte{Esc, '7'}
+var RestoreAttrCursor = []byte{Esc, '8'}
 var CursorHide = []byte{Esc, '[', '?', '2', '5', 'l'}
 
 func (a *Ansi) CursorHide() {
@@ -217,17 +210,23 @@ func (a *Ansi) CursorShow() {
 	a.Write(CursorShow)
 }
 
+var ScrollScreen = []byte{Esc, '[', 'r'}
+var ScrollDown = []byte{Esc, 'D'}
+var ScrollUp = []byte{Esc, 'M'}
+
+func Scroll(start, end uint16) []byte {
+	return []byte(string(Esc) + fmt.Sprintf("[%d;%dr", start, end))
+}
+
 // Tab Control
-// Set Tab 		<ESC>H
-// Clear Tab 		<ESC>[g
-// Clear All Tabs 		<ESC>[3g
-
-// Erase End of Line	<ESC>[K
-// Erase Start of Line	<ESC>[1K
-// Erase Line		<ESC>[2K
-// Erase Down		<ESC>[J
-// Erase Up		<ESC>[1J
-
+var SetTab = []byte{Esc, 'H'}
+var ClearTab = []byte{Esc, '[', 'g'}
+var ClearAllTabs = []byte{Esc, '[', '3', 'g'}
+var EraseEndLine = []byte{Esc, '[', 'K'}
+var EraseStartLine = []byte{Esc, '[', '1', 'K'}
+var EraseLine = []byte{Esc, '[', '2', 'K'}
+var EraseDown = []byte{Esc, '[', 'J'}
+var EraseUp = []byte{Esc, '[', '1', 'J'}
 var EraseScreen = []byte{Esc, '[', '2', 'J'}
 
 func (a *Ansi) EraseScreen() {
@@ -235,17 +234,18 @@ func (a *Ansi) EraseScreen() {
 }
 
 // Printing
-// Print Screen		<ESC>[i
-// Print Line		<ESC>[1i
-// Stop Print Log		<ESC>[4i
-// Start Print Log		<ESC>[5i
+var PrintScreen = []byte{Esc, '[', 'i'}
+var PrintLine = []byte{Esc, '[', '1', 'i'}
+var StopPrintLog = []byte{Esc, '[', '4', 'i'}
+var StartPrintLog = []byte{Esc, '[', '5', 'i'}
 
 // Set Key Definition	<ESC>[{key};"{ascii}"p
 
 // Sets multiple display attribute settings. The following lists standard attributes:
 type Attribute string
 
-var (
+const (
+	//formatinn
 	Reset      Attribute = "0"
 	Bright     Attribute = "1"
 	Dim        Attribute = "2"
@@ -254,9 +254,7 @@ var (
 	Blink      Attribute = "5"
 	Reverse    Attribute = "7"
 	Hidden     Attribute = "8"
-)
-
-const (
+	//foreground colors
 	Black   Attribute = "30"
 	Red     Attribute = "31"
 	Green   Attribute = "32"
@@ -265,9 +263,7 @@ const (
 	Magenta Attribute = "35"
 	Cyan    Attribute = "36"
 	White   Attribute = "37"
-)
-
-const (
+	//background colors
 	BlackBG   Attribute = "40"
 	RedBG     Attribute = "41"
 	GreenBG   Attribute = "42"
@@ -293,3 +289,32 @@ func Set(attrs ...Attribute) []byte {
 func (a *Ansi) Set(attrs ...Attribute) {
 	a.Write(Set(attrs...))
 }
+
+var (
+	ResetBytes      = Set(Reset)
+	BrightBytes     = Set(Bright)
+	DimBytes        = Set(Dim)
+	ItalicBytes     = Set(Italic)
+	UnderscoreBytes = Set(Underscore)
+	BlinkBytes      = Set(Blink)
+	ReverseBytes    = Set(Reverse)
+	HiddenBytes     = Set(Hidden)
+	//foreground colors
+	BlackBytes   = Set(Black)
+	RedBytes     = Set(Red)
+	GreenBytes   = Set(Green)
+	YellowBytes  = Set(Yellow)
+	BlueBytes    = Set(Blue)
+	MagentaBytes = Set(Magenta)
+	CyanBytes    = Set(Cyan)
+	WhiteBytes   = Set(White)
+	//background colors
+	BlackBGBytes   = Set(BlackBG)
+	RedBGBytes     = Set(RedBG)
+	GreenBGBytes   = Set(GreenBG)
+	YellowBGBytes  = Set(YellowBG)
+	BlueBGBytes    = Set(BlueBG)
+	MagentaBGBytes = Set(MagentaBG)
+	CyanBGBytes    = Set(CyanBG)
+	WhiteBGBytes   = Set(WhiteBG)
+)
