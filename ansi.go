@@ -1,4 +1,4 @@
-//Implements the ANSI VT100 control set.
+//Package ansi implements the ANSI VT100 control set.
 //Please refer to http://www.termsys.demon.co.uk/vtansi.htm
 package ansi
 
@@ -117,7 +117,7 @@ func (a *Ansi) Write(p []byte) (n int, err error) {
 	return a.rw.Write(p)
 }
 
-//Closes the underlying ReadWriter
+//Close the underlying ReadWriter
 func (a *Ansi) Close() error {
 	c, ok := a.rw.(io.Closer)
 	if !ok {
@@ -174,6 +174,7 @@ func (a *Ansi) DisableLineWrap() {
 var FontSetG0 = []byte{Esc, '('}
 var FontSetG1 = []byte{Esc, ')'}
 
+// Goto various positions:
 // Cursor Home 		<ESC>[{ROW};{COLUMN}H
 // Cursor Up		<ESC>[{COUNT}A
 // Cursor Down		<ESC>[{COUNT}B
@@ -245,7 +246,7 @@ var StartPrintLog = []byte{Esc, '[', '5', 'i'}
 type Attribute string
 
 const (
-	//formatinn
+	//formating
 	Reset      Attribute = "0"
 	Bright     Attribute = "1"
 	Dim        Attribute = "2"
