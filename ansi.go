@@ -1,5 +1,5 @@
-//Package ansi implements the ANSI VT100 control set.
-//Please refer to http://www.termsys.demon.co.uk/vtansi.htm
+// Package ansi implements the ANSI VT100 control set.
+// Please refer to http://www.termsys.demon.co.uk/vtansi.htm
 package ansi
 
 import (
@@ -11,9 +11,9 @@ import (
 	"strings"
 )
 
-//Ansi represents a wrapped io.ReadWriter.
-//It will read the stream, parse and remove ANSI report codes
-//and place them on the Reports queue.
+// Ansi represents a wrapped io.ReadWriter.
+// It will read the stream, parse and remove ANSI report codes
+// and place them on the Reports queue.
 type Ansi struct {
 	rw      io.ReadWriter
 	rerr    error
@@ -21,8 +21,8 @@ type Ansi struct {
 	Reports chan *Report
 }
 
-//Wrap an io.ReadWriter (like a net.Conn) to
-//easily read and write control codes
+// Wrap an io.ReadWriter (like a net.Conn) to
+// easily read and write control codes
 func Wrap(rw io.ReadWriter) *Ansi {
 	a := &Ansi{}
 	a.rw = rw
@@ -34,9 +34,9 @@ func Wrap(rw io.ReadWriter) *Ansi {
 
 var reportCode = regexp.MustCompile(`\[([^a-zA-Z]*)(0c|0n|3n|R)`)
 
-//reads the underlying ReadWriter for real,
-//extracts the ansi codes, places the rest
-//in the read buffer
+// reads the underlying ReadWriter for real,
+// extracts the ansi codes, places the rest
+// in the read buffer
 func (a *Ansi) read() {
 	buff := make([]byte, 0xffff)
 	for {
@@ -99,7 +99,7 @@ func (a *Ansi) parse(body, char string) {
 	a.Reports <- r
 }
 
-//Reads the underlying ReadWriter
+// Reads the underlying ReadWriter
 func (a *Ansi) Read(dest []byte) (n int, err error) {
 	//It doesn't really read the underlying ReadWriter :)
 	if a.rerr != nil {
@@ -112,12 +112,12 @@ func (a *Ansi) Read(dest []byte) (n int, err error) {
 	return copy(dest, src), nil
 }
 
-//Writes the underlying ReadWriter
+// Writes the underlying ReadWriter
 func (a *Ansi) Write(p []byte) (n int, err error) {
 	return a.rw.Write(p)
 }
 
-//Close the underlying ReadWriter
+// Close the underlying ReadWriter
 func (a *Ansi) Close() error {
 	c, ok := a.rw.(io.Closer)
 	if !ok {
@@ -279,7 +279,17 @@ const (
 	DefaultBG Attribute = "49"
 )
 
-//Set attributes
+// String joins: attribute, string, reset, and converts to a string
+func (a Attribute) String(s string) string {
+	return string(a.Join(s, Reset))
+}
+
+// Wrap joins: attribute, string, another attribute
+func (a Attribute) Join(s string, b Attribute) []byte {
+	return append(Set(a), append([]byte(s), Set(b)...)...)
+}
+
+// Set attributes
 func Set(attrs ...Attribute) []byte {
 	s := make([]string, len(attrs))
 	for i, a := range attrs {
