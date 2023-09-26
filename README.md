@@ -1,5 +1,11 @@
 ## ansi
 
+---
+
+:warning: Not maintained. Please use https://github.com/muesli/ansi or the excellent https://github.com/muesli/termenv
+
+---
+
 Implements the ANSI VT100 control set.
 Please refer to http://www.termsys.demon.co.uk/vtansi.htm
 
